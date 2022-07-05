@@ -20,6 +20,16 @@ function App() {
   const contractAddress = ""; // to be added for the new contract that I make
   const contractABI = abi.abi;
 
+  function hexToBytes(hex) {
+    if (!hex) {
+      return []
+    } else {
+      for (var bytes = [], c = 0; c < hex.length; c += 2)
+      bytes.push(parseInt(hex.substr(c, 2), 16));
+      return bytes;
+    }
+  }
+
   const isMetaMaskInstalled = async () => {
     const { ethereum } = window;
     return Boolean(ethereum && ethereum.isMetaMask);
