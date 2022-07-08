@@ -29,7 +29,8 @@
 .directions {
   text-align: center;
   color: rgb(247, 244, 246);
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: bolder;
   margin-top: 5px;
   margin-bottom: 8px;
   line-height: 1.4;
