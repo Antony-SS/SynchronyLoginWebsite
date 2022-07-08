@@ -11,17 +11,18 @@ function App() {
   const [hasId, setHasId] = useState(false);
   const [buttonText, setButtonText] = useState("Connect Wallet");
   const [buttonPressed, setButtonPressed] = useState(false);
+  // const [buttonState, setButtonState] = useState(false);
   const [directions, setDirections] = useState("Please connect wallet to login.  Make sure that your wallet is running on the Goerli testnet.");
-  const [backgroundColor, setBackgroundColor] = useState("#777777f4");
+  const [backgroundColor, setBackgroundColor] = useState("##777777f4");
 
   const green = "#28b715b6"
   const red = "#ee0404b6"
 
   const MINTER_ROLE = ethers.utils.formatBytes32String("MINTER_ROLE");
 
-  // const syfWalletAddress = "0xAd661cb75C262c63cc34A705f8191Ef33AC90412";
-  // let syfwalletAddressFormatted = ethers.utils.hexlify(syfWalletAddress);
-  // syfwalletAddressFormatted = hexToBytes(syfWalletAddress);
+  const syfWalletAddress = "0xAd661cb75C262c63cc34A705f8191Ef33AC90412";
+  let syfwalletAddressFormatted = ethers.utils.hexlify(syfWalletAddress);
+  syfwalletAddressFormatted = hexToBytes(syfWalletAddress);
 
   const contractAddress = "0x73F78a5d451DCAb7cb935fEE198a0e13380bD578"; // to be added for the new contract that I make
   const contractABI = abi.abi;
@@ -62,6 +63,7 @@ function App() {
         console.log("Found an authorized account:", account);
         setCurrentAccount(account);
         setButtonText("Connected with: " + currentAccount);
+        verifyId();
       } else {
         console.log("No authorized account found");
         // Will have to flash this on screen, not sure how this is possible
@@ -84,6 +86,7 @@ function App() {
 
       console.log("Connected", accounts[0]);
       setCurrentAccount(accounts[0]);
+      setButtonPressed(true);
       verifyId();
     } catch (error) {
       console.log(error)
@@ -113,24 +116,28 @@ function App() {
 
         // continuing now assuming that we are referencing the correct contract . . .
         // next step is to check their balance to see if they have an ID issued by this contract
-        console.log("Entering Verify ID");
-        const IdCountBig = await identifierContract.balanceOf(currentAccount);
-        let IdCount = IdCountBig.toNumber();
+
+        const IdCount = (await identifierContract.balanceOf(currentAccount)).toNumber();
         console.log(IdCount);
         if (IdCount === 1) {
           console.log("We have an id");
           setHasId(true);
+          setBackgroundColor(green);
           setDirections("Found a valid digital ID in your wallet");
           // get the token ID and URI, not change the view of screen
-          // for the screen I want it to be black until verified or not, in which chase it will turn green.  Text will be white the entire time.
+          let ownedTokenId = (await identifierContract.tokenOfOwnerByIndex(currentAccount, 0)).toNumber(); // will get the first token id in a list of owner's owned tokens
+          console.log(ownedTokenId);
+          console.log(await identifierContract.tokenURI(ownedTokenId));
+
+          
         } else if (IdCount === 0) {
-          console.log("??");
           setDirections("Could not find a valid digital ID in this wallet.  If you would like to apply for an account please head to the application page.");
+          setBackgroundColor(red);
           setHasId(false);
           // behavior for sending them to the right place to mint an NFT
         } else {
           // Red flag, how do they have two IDs . . . should never get here
-          console.log("entering section of for loop we should never reach")
+          console.log("entering section conditional we should never reach")
         }
       } 
     } catch {
@@ -138,17 +145,33 @@ function App() {
     }
   }
 
+  const getId = async(URL) => {
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", URL);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onload = function() {
+      if (this.status === 200) {
+        createNFT(walletAddress);
+      } else {
+        console.log(xhr.responseText);
+      }
+    }
+// send POST 
+    xhr.send(jsonid);
+
+  }
+
   useEffect(() => {
     checkIfWalletIsConnected();
   })
 
   useEffect(() => {
-    if (hasId) {
+    if (hasId && buttonPressed) {
       setBackgroundColor(green);
-    } else {
+    } else if (!hasId && buttonPressed) {
       setBackgroundColor(red);
     }
-    //document.getElementById("connectWallet").style.background = (backgroundColor);
+    document.getElementById("connectWallet").style.background = (backgroundColor);
   }, [hasId, currentAccount, backgroundColor])
 
   return (
