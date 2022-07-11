@@ -113,7 +113,7 @@ function App() {
           setHasId(false);
           // behavior for sending them to the right place to mint an NFT
         } else {
-          // Red flag, how do they have two IDs . . . should never get here
+          // Red flag, how do they have two IDs . . . should never get here . . . 
           console.log("entering section conditional we should never reach")
         }
       } 
