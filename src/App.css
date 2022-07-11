@@ -50,3 +50,22 @@
 .title {
   color: rgb(210, 187, 11);
 }
+
+.idCard {
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 5px;
+  overflow-y: scroll;
+  padding-bottom: 5px;
+}
+
+.name {
+  text-align: center;
+  font-size: 28px;
+  text-emphasis: bold;
+  margin-bottom: 5px;
+}
+
+.info {
+  margin-bottom: 2px;
+}

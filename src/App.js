@@ -14,6 +14,7 @@ function App() {
   // const [buttonState, setButtonState] = useState(false);
   const [directions, setDirections] = useState("Please connect wallet to login.  Make sure that your wallet is running on the Goerli testnet.");
   const [backgroundColor, setBackgroundColor] = useState("##777777f4");
+  const [jsonId, setJsonId] = useState();
 
   const green = "#28b715b6"
   const red = "#ee0404b6"
@@ -28,17 +29,6 @@ function App() {
 
   const contractAddress = "0xb8E16DDcaF389C84B61C56ab8B0A88E57ACe9053"; // to be added for the new contract that I make
   const contractABI = abi.abi;
-
-
-  function hexToBytes(hex) {
-    if (!hex) {
-      return []
-    } else {
-      for (var bytes = [], c = 0; c < hex.length; c += 2)
-      bytes.push(parseInt(hex.substr(c, 2), 16));
-      return bytes;
-    }
-  }
 
   const isMetaMaskInstalled = async () => {
     const { ethereum } = window;
@@ -105,22 +95,8 @@ function App() {
 
         const identifierContract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // let authorizedContractCreator = identifierContract.hasRole(syfwalletAddressFormatted, MINTER_ROLE);
-
-        // // if the contract address that is put into this code is correct, then this check is redundant, but it is an extra layer of security
-        // if (!authorizedContractCreator) {
-        //   setHasId(false);
-        //   console.log("The ERC721 contract that you are attempting to reference for authentication was not created by an authorized party, in this case Synchrony");
-        //   alert("The ERC721 contract that you are attempting to reference for authentication was not created by an authorized party, in this case, Synchrony");
-        //   setDirections("WARNING: The ERC721 contract this code is referencing for Digital IDs was not created by the minter (Synchrony).  Please contact contact Synchrony immediately");
-        //   return;
-        // }
-
-        // continuing now assuming that we are referencing the correct contract . . .
-        // next step is to check their balance to see if they have an ID issued by this contract
-
         const IdCount = (await identifierContract.balanceOf(currentAccount)).toNumber();
-        console.log(IdCount);
+        
         if (IdCount === 1) {
           console.log("We have an id");
           setHasId(true);
@@ -128,10 +104,8 @@ function App() {
           setDirections("Found a valid digital ID in your wallet");
           // get the token ID and URI, then create an ID card to display on screen
           let ownedTokenId = (await identifierContract.tokenOfOwnerByIndex(currentAccount, 0)).toNumber(); // will get the first token id in a list of owner's owned tokens
-          console.log(ownedTokenId);
-          console.log(await identifierContract.tokenURI(ownedTokenId));
-          let jsonId = await getId(await identifierContract.tokenURI(ownedTokenId));
-          console.log(jsonId);
+
+          getId(await identifierContract.tokenURI(ownedTokenId));
           
         } else if (IdCount === 0) {
           setDirections("Could not find a valid digital ID in this wallet.  If you would like to apply for an account please head to the application page.");
@@ -151,36 +125,38 @@ function App() {
   const getId = async(URL) => {
     let xhr = new XMLHttpRequest();
     xhr.open("GET", URL);
-    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.responseType = 'json';
 
     // function that specifies what to do with the response once received
-
     xhr.onload = function() {
       if (this.status === 200) {
-        console.log(this.responseText);
-        console.log(this.response);
-        return this.response;
+        console.log("Request response is 200.")
+        console.log(this.response)
+        setJsonId(this.response);
       } else {
-        console.log(xhr.responseText);
+        console.log("Couldn't find the ID in records, this should never happen.  This indicates that the records must have been corrupted or the blockchain was hacked (not likely).");
+        return ("Couldn't find the ID in records, this should never happen.  This indicates that the records must have been corrupted or the blockchain was hacked (not likely).");
       }
     }
-// send POST 
+// send GET
     xhr.send();
-
   }
 
   useEffect(() => {
     checkIfWalletIsConnected();
-  })
+  }, [currentAccount]) // eslint-disable-line react-hooks/exhaustive-deps
+
 
   useEffect(() => {
     if (hasId && buttonPressed) {
       setBackgroundColor(green);
     } else if (!hasId && buttonPressed) {
       setBackgroundColor(red);
+      setJsonId('');
     }
     document.getElementById("connectWallet").style.background = (backgroundColor);
-  }, [hasId, currentAccount, backgroundColor, buttonPressed])
+  }, [hasId, backgroundColor, buttonPressed, currentAccount])
+
 
   return (
     <div className="App">
@@ -202,6 +178,33 @@ function App() {
         </div>
         <div className="directions">{directions}</div>
         <button className="connectWallet" id="connectWallet" onClick= {connectWallet}>{buttonText}</button>
+        { jsonId && (
+          <>
+            <div className="idCard">
+              <div className="name">
+                {jsonId.lastName}, {jsonId.middleName} {jsonId.firstName}
+              </div>
+              <div className="info">
+                {jsonId.address}
+              </div>
+              <div className="info">
+                {jsonId.city}, {jsonId.state}, {jsonId.zip}
+              </div>
+              <div className="info">
+                {jsonId._birthdate}
+              </div>
+              <div className="info">
+                {jsonId.email}
+              </div>
+              <div className="info">
+                {jsonId.phone}
+              </div>
+              <div className="info">
+                {jsonId.email}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
 
