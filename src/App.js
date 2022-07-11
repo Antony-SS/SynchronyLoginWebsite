@@ -24,7 +24,7 @@ function App() {
   let syfwalletAddressFormatted = ethers.utils.hexlify(syfWalletAddress);
   syfwalletAddressFormatted = hexToBytes(syfWalletAddress);
 
-  const contractAddress = "0x73F78a5d451DCAb7cb935fEE198a0e13380bD578"; // to be added for the new contract that I make
+  const contractAddress = "0xb8E16DDcaF389C84B61C56ab8B0A88E57ACe9053"; // to be added for the new contract that I make
   const contractABI = abi.abi;
 
 
@@ -124,11 +124,12 @@ function App() {
           setHasId(true);
           setBackgroundColor(green);
           setDirections("Found a valid digital ID in your wallet");
-          // get the token ID and URI, not change the view of screen
+          // get the token ID and URI, then create an ID card to display on screen
           let ownedTokenId = (await identifierContract.tokenOfOwnerByIndex(currentAccount, 0)).toNumber(); // will get the first token id in a list of owner's owned tokens
           console.log(ownedTokenId);
           console.log(await identifierContract.tokenURI(ownedTokenId));
-
+          let jsonId = await getId(await identifierContract.tokenURI(ownedTokenId));
+          console.log(jsonId);
           
         } else if (IdCount === 0) {
           setDirections("Could not find a valid digital ID in this wallet.  If you would like to apply for an account please head to the application page.");
@@ -149,15 +150,20 @@ function App() {
     let xhr = new XMLHttpRequest();
     xhr.open("GET", URL);
     xhr.setRequestHeader("Content-Type", "application/json");
+
+    // function that specifies what to do with the response once received
+
     xhr.onload = function() {
       if (this.status === 200) {
-        createNFT(walletAddress);
+        console.log(this.responseText);
+        console.log(this.response);
+        return this.response;
       } else {
         console.log(xhr.responseText);
       }
     }
 // send POST 
-    xhr.send(jsonid);
+    xhr.send();
 
   }
 
@@ -172,7 +178,7 @@ function App() {
       setBackgroundColor(red);
     }
     document.getElementById("connectWallet").style.background = (backgroundColor);
-  }, [hasId, currentAccount, backgroundColor])
+  }, [hasId, currentAccount, backgroundColor, buttonPressed])
 
   return (
     <div className="App">
