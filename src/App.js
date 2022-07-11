@@ -18,11 +18,13 @@ function App() {
   const green = "#28b715b6"
   const red = "#ee0404b6"
 
-  const MINTER_ROLE = ethers.utils.formatBytes32String("MINTER_ROLE");
+  // The stuff that is commented out here is for an extra layer of security that could be implemented.  It is sort of redudant and I don't have time to figure out the datatypes right now.
 
-  const syfWalletAddress = "0xAd661cb75C262c63cc34A705f8191Ef33AC90412";
-  let syfwalletAddressFormatted = ethers.utils.hexlify(syfWalletAddress);
-  syfwalletAddressFormatted = hexToBytes(syfWalletAddress);
+  // const MINTER_ROLE = ethers.utils.formatBytes32String("MINTER_ROLE");
+
+  // const syfWalletAddress = "0xAd661cb75C262c63cc34A705f8191Ef33AC90412";
+  // let syfwalletAddressFormatted = ethers.utils.hexlify(syfWalletAddress);
+  // syfwalletAddressFormatted = hexToBytes(syfWalletAddress);
 
   const contractAddress = "0xb8E16DDcaF389C84B61C56ab8B0A88E57ACe9053"; // to be added for the new contract that I make
   const contractABI = abi.abi;
