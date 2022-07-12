@@ -181,7 +181,7 @@ function App() {
                 {jsonId.phone}
               </div>
               <div className="info">
-                {jsonId.email}
+                {jsonId.ssn}
               </div>
             </div>
           </>
