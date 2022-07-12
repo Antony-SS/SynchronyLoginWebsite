@@ -8,24 +8,13 @@ import './App.css';
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState("");
-  const [hasId, setHasId] = useState(false);
   const [buttonText, setButtonText] = useState("Connect Wallet");
-  const [buttonPressed, setButtonPressed] = useState(false);
   // const [buttonState, setButtonState] = useState(false);
   const [directions, setDirections] = useState("Please connect wallet to login.  Make sure that your wallet is running on the Goerli testnet.");
-  const [backgroundColor, setBackgroundColor] = useState("##777777f4");
   const [jsonId, setJsonId] = useState();
 
-  const green = "#28b715b6"
-  const red = "#ee0404b6"
-
-  // The stuff that is commented out here is for an extra layer of security that could be implemented.  It is sort of redudant and I don't have time to figure out the datatypes right now.
-
-  // const MINTER_ROLE = ethers.utils.formatBytes32String("MINTER_ROLE");
-
-  // const syfWalletAddress = "0xAd661cb75C262c63cc34A705f8191Ef33AC90412";
-  // let syfwalletAddressFormatted = ethers.utils.hexlify(syfWalletAddress);
-  // syfwalletAddressFormatted = hexToBytes(syfWalletAddress);
+  const green = "#28b715b6";
+  const red = "#ee0404b6";
 
   const contractAddress = "0xb8E16DDcaF389C84B61C56ab8B0A88E57ACe9053"; // to be added for the new contract that I make
   const contractABI = abi.abi;
@@ -40,7 +29,7 @@ function App() {
       setDirections("Please download metamask in order to continue logging in");
       console.log("Get Metamask!");
       alert("Get Metamask!");
-      return;
+      return false;
       // only logging to console for now, can add functionality to display a link . . .
     }
     
@@ -55,10 +44,11 @@ function App() {
         console.log("Found an authorized account:", account);
         setCurrentAccount(account);
         setButtonText("Connected with: " + currentAccount);
-        verifyId();
+        return true;
       } else {
         console.log("No authorized account found");
         // Will have to flash this on screen, not sure how this is possible
+        return false;
       }
     } catch {
       console.error();
@@ -78,8 +68,7 @@ function App() {
 
       console.log("Connected", accounts[0]);
       setCurrentAccount(accounts[0]);
-      setButtonPressed(true);
-      verifyId();
+      await verifyId();
     } catch (error) {
       console.log(error)
     }
@@ -90,6 +79,7 @@ function App() {
       const { ethereum } = window;
 
       if (ethereum) {
+        console.log("Calling verify!!")
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
 
@@ -99,18 +89,19 @@ function App() {
         
         if (IdCount === 1) {
           console.log("We have an id");
-          setHasId(true);
-          setBackgroundColor(green);
+          document.getElementById("connectWallet").style.background = green;
           setDirections("Found a valid digital ID in your wallet");
           // get the token ID and URI, then create an ID card to display on screen
-          let ownedTokenId = (await identifierContract.tokenOfOwnerByIndex(currentAccount, 0)).toNumber(); // will get the first token id in a list of owner's owned tokens
+          let ownedTokenId = await (await identifierContract.tokenOfOwnerByIndex(currentAccount, 0)).toNumber(); // will get the first token id in a list of owner's owned tokens
 
-          getId(await identifierContract.tokenURI(ownedTokenId));
-          
+          await getId(await identifierContract.tokenURI(ownedTokenId));
+          return;
         } else if (IdCount === 0) {
+          console.log("Entering ID count = 0");
+          document.getElementById("connectWallet").style.background = red;
+          setJsonId('');
           setDirections("Could not find a valid digital ID in this wallet.  If you would like to apply for an account please head to the application page.");
-          setBackgroundColor(red);
-          setHasId(false);
+          return;
           // behavior for sending them to the right place to mint an NFT
         } else {
           // Red flag, how do they have two IDs . . . should never get here . . . 
@@ -131,7 +122,7 @@ function App() {
     xhr.onload = function() {
       if (this.status === 200) {
         console.log("Request response is 200.")
-        console.log(this.response)
+        console.log(this.response);
         setJsonId(this.response);
       } else {
         console.log("Couldn't find the ID in records, this should never happen.  This indicates that the records must have been corrupted or the blockchain was hacked (not likely).");
@@ -143,20 +134,10 @@ function App() {
   }
 
   useEffect(() => {
+    console.log("Calling small hook");
     checkIfWalletIsConnected();
+    verifyId();
   }, [currentAccount]) // eslint-disable-line react-hooks/exhaustive-deps
-
-
-  useEffect(() => {
-    if (hasId && buttonPressed) {
-      setBackgroundColor(green);
-    } else if (!hasId && buttonPressed) {
-      setBackgroundColor(red);
-      setJsonId('');
-    }
-    document.getElementById("connectWallet").style.background = (backgroundColor);
-  }, [hasId, backgroundColor, buttonPressed, currentAccount])
-
 
   return (
     <div className="App">
