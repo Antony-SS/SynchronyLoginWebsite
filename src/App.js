@@ -16,7 +16,7 @@ function App() {
   const green = "#28b715b6";
   const red = "#ee0404b6";
 
-  const contractAddress = "0xb8E16DDcaF389C84B61C56ab8B0A88E57ACe9053"; // to be added for the new contract that I make
+  const contractAddress = "0x88D5487165De3AC223a769E73Df8633A41E74585"; // to be added for the new contract that I make
   const contractABI = abi.abi;
 
   const isMetaMaskInstalled = async () => {
