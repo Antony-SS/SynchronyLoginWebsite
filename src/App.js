@@ -12,12 +12,37 @@ function App() {
   // const [buttonState, setButtonState] = useState(false);
   const [directions, setDirections] = useState("Please connect wallet to login.  Make sure that your wallet is running on the Goerli testnet.");
   const [jsonId, setJsonId] = useState();
+  const [decryptedJsonId, setDecryptedJsonId] = useState();
 
   const green = "#28b715b6";
   const red = "#ee0404b6";
 
   const contractAddress = "0xdFce4eb569634a5e3DC5BE7436667D5259f3de9b"; // to be added for the new contract that I make
   const contractABI = abi.abi;
+
+  function decryptJsonId() {
+    const { ethereum } = window;
+    
+    let temp = jsonId;
+    // iterating through every value in the json object except walletAddress (since it is unencrypted)
+    Object.keys(jsonId).forEach((key) => {
+      if (key !== "walletAddress") {
+        ethereum
+          .request({
+            method: 'eth_decrypt',
+            params: [temp[key], currentAccount],
+          })
+          .then(function(decryptedMessage) { 
+            console.log(decryptedMessage);
+            temp[key] = decryptedMessage;
+          })
+          .catch((error) => console.log(error.message));
+      }
+    })
+    setDecryptedJsonId(temp);
+    setJsonId('');
+    console.log("From newly decrypted object", decryptedJsonId.firstName);
+  }
 
   const isMetaMaskInstalled = async () => {
     const { ethereum } = window;
@@ -91,11 +116,12 @@ function App() {
           console.log("We have an id");
           document.getElementById("connectWallet").style.background = green;
           setDirections("Found a valid digital ID in your wallet");
+
           // get the token ID and URI, then create an ID card to display on screen
           let ownedTokenId = await (await identifierContract.tokenOfOwnerByIndex(currentAccount, 0)).toNumber(); // will get the first token id in a list of owner's owned tokens
-
           await getId(await identifierContract.tokenURI(ownedTokenId));
           return;
+
         } else if (IdCount === 0) {
           console.log("Entering ID count = 0");
           document.getElementById("connectWallet").style.background = red;
@@ -137,7 +163,7 @@ function App() {
     console.log("Calling small hook");
     checkIfWalletIsConnected();
     verifyId();
-  }, [currentAccount]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentAccount, jsonId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="App">
@@ -159,7 +185,7 @@ function App() {
         </div>
         <div className="directions">{directions}</div>
         <button className="connectWallet" id="connectWallet" onClick= {connectWallet}>{buttonText}</button>
-        { jsonId && (
+        { (jsonId && !decryptedJsonId) && (
           <>
             <div className="idCard">
               <div className="name">
@@ -182,6 +208,34 @@ function App() {
               </div>
               <div className="info">
                 {jsonId.ssn}
+              </div>
+            </div>
+            <button className="decryptId" onClick={decryptJsonId}>Decrypt ID!</button>
+          </>
+        )}
+        { decryptedJsonId && (
+          <>
+          <div className="idCard">
+              <div className="name">
+                {decryptedJsonId.lastName}, {decryptedJsonId.middleName} {decryptedJsonId.firstName}
+              </div>
+              <div className="info">
+                {decryptedJsonId.address}
+              </div>
+              <div className="info">
+                {decryptedJsonId.city}, {decryptedJsonId.state}, {decryptedJsonId.zip}
+              </div>
+              <div className="info">
+                {decryptedJsonId._birthdate}
+              </div>
+              <div className="info">
+                {decryptedJsonId.email}
+              </div>
+              <div className="info">
+                {decryptedJsonId.phone}
+              </div>
+              <div className="info">
+                {decryptedJsonId.ssn}
               </div>
             </div>
           </>
