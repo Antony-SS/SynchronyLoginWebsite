@@ -7,6 +7,7 @@ import './App.css';
 
 
 function App() {
+  // Setting state variables 
   const [currentAccount, setCurrentAccount] = useState("");
   const [buttonText, setButtonText] = useState("Connect Wallet");
   // const [buttonState, setButtonState] = useState(false);
